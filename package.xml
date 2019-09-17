@@ -10,4 +10,10 @@
 
     <buildtool_depend>catkin</buildtool_depend>
 
+    <build_depend>zeabus_library</build_depend>
+    <exec_depend>zeabus_library</exec_depend>
+
+    <build_depend>roscpp</build_depend>
+    <exec_depend>roscpp</build_depend>
+
 </package>
