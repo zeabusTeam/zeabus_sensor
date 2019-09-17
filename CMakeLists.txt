@@ -15,3 +15,9 @@ include_directories(
     ${catkin_INCLUDE_DIRS}
     ${zeabus_library_INCLUDE_DIRS}
 )
+
+add_executable( capture_gyro_bias src/imu_capture_gyro_bias.cpp)
+target_link_libraries( capture_gyro_bias 
+    ${zeabus_library_LIBRARIES}
+    ${catkin_LIBRARIES}
+)

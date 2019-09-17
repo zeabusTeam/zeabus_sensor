@@ -14,6 +14,6 @@
     <exec_depend>zeabus_library</exec_depend>
 
     <build_depend>roscpp</build_depend>
-    <exec_depend>roscpp</build_depend>
+    <exec_depend>roscpp</exec_depend>
 
 </package>
