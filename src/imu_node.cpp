@@ -20,6 +20,8 @@
 
 #include    <ros/ros.h>
 
+#include    <sensor_msgs/Imu.h>
+
 #include    <zeabus/ros/node.hpp>
 
 #include    <zeabus/sensor/imu/connector.hpp>
@@ -33,10 +35,15 @@ int main( int argv , char** argc )
 
     ros::NodeHandle ph("~"); // param node
 
+    // Parameter of path of IMU device
     std::string device_path;
-    param_handle.param< std::string >( "device_path"
-        , device_path
-        , "/dev/microstrain/3dm_gx5_45_0000__6251.65903");
+    param_handle.param< std::string >( "device_path" ,
+            device_path ,
+            "/dev/microstrain/3dm_gx5_45_0000__6251.65903");
+
+    // Parameter of frequency
+    std::string frequency;
+    param_handle.param< int >( "frequency" , frequency , 50 );
 
     zeabus::sensor::imu::Connector imu( device_path );
 
@@ -57,7 +64,7 @@ int main( int argv , char** argc )
                 boost::asio::serial_port_base::stop_bits::one ) );
         (void)imu.set_option_port( 
                 boost::asio::serial_port_base::character_size( (unsigned char) 8 ) );
-        imu.set_imu_rate( 50 );
+        imu.set_imu_rate( frequency );
     }
 
     // Part of command connect to IMU
@@ -68,6 +75,13 @@ int main( int argv , char** argc )
                 _imu_protocol::DATA::IMU_DATA_SET::CF_QUATERNION ) ) goto exit_main;
     if( ! imu.enable_imu_data_stream() ) goto exit_main;
     if( ! imu.resume() ) goto exit_main;
+
+
+    ros::Rate loop_rate( frequency );
+    while( ros::ok() )
+    {
+        
+    }
 
 
 
