@@ -33,7 +33,8 @@ int main( int argv , char** argc )
 {
     zeabus_ros::Node node( argv , argc , "imu" );
 
-    ros::NodeHandle ph("~"); // param node
+    ros::NodeHandle ph("~"); // param node handle
+    ros::NodeHandle nh(""); // general node handle
 
     // Parameter of path of IMU device
     std::string device_path;
@@ -44,6 +45,12 @@ int main( int argv , char** argc )
     // Parameter of frequency
     std::string frequency;
     param_handle.param< int >( "frequency" , frequency , 50 );
+
+    // Parameter of topic output
+    std::string topic_output;
+    param_handle.param< std::string >( "topic_output" ,
+            topic_output ,
+            "sensor/imu" );
 
     zeabus::sensor::imu::Connector imu( device_path );
 
@@ -76,11 +83,58 @@ int main( int argv , char** argc )
     if( ! imu.enable_imu_data_stream() ) goto exit_main;
     if( ! imu.resume() ) goto exit_main;
 
-
     ros::Rate loop_rate( frequency );
+    std::vector< unsigned char >::iterator start_point;
+    std::vector< unsigned char >::iterator last_point;
+    sensor_msgs::Imu message;
+    ros::Publisher imu_publisher = nh.advertise< sensor_msgs::Imu >( topic_output , 1 );
     while( ros::ok() )
     {
-        
+        if( imu.read_stream( &start_point , &last_point ) )
+        {
+
+convert: // This you to loop convert data
+            if( start_point < last_point )
+            {
+                switch( *start_point )
+                {
+                case _imu_protocol::DATA::IMU_DATA_SET::SCALED_ACCELEROMETER_VECTOR :
+                    (void)zeabus_ros::convert::geometry_vector3::bytes( start_point , 
+                            &message.linear_acceleration ,
+                            1 );
+                    start_point += 14 ; // skip point self field descriptor byte <1 byte>
+                                        // skip point self length data 3 float < 3*4 bytes>
+                                        // skip point next field length data <1 byte>
+                                        // Now point to next field descriptor byte **if have**
+                    goto convert;
+                case _imu_protocol::DATA::IMU_DATA_SET::SCALED_GYRO_VECTOR :
+                    (void)zeabus_ros::convert::geometry_vector3::bytes( start_point ,
+                            &message.angular_velocity ,
+                            1 );
+                    start_point += 14 ; // skip point self field descriptor byte <1 byte>
+                                        // skip point self length data 3 float < 3*4 bytes>
+                                        // skip point next field length data <1 byte>
+                                        // Now point to next field descriptor byte **if have**
+                    goto convert;
+                case _imu_protocol::DATA::IMU_DATA_SET::CF_QUATERNION :
+                    (void)zeabus_ros::convert::geometry_quaternion::bytes( start_point ,
+                            &message.angular_velocity ,
+                            1 );
+                    start_point += 18 ; // skip point self field descriptor byte <1 byte>
+                                        // skip point self length data 3 float < 4*4 bytes>
+                                        // skip point next field length data <1 byte>
+                                        // Now point to next field descriptor byte **if have**
+                    goto convert;
+                }
+            }
+            else
+            {
+                message.header.stamp = ros:;Time::now();
+                imu_publisher.publish( message );
+            }
+
+        } // read stream finish
+        loop_rate.sleep();
     }
 
 
