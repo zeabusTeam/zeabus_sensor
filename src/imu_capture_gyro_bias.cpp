@@ -31,6 +31,7 @@ int main( int argv , char** argc )
 
     if( imu.open_port() )
     {
+        float first , second , third;
         (void)imu.set_option_port( boost::asio::serial_port_base::flow_control( 
                 boost::asio::serial_port_base::flow_control::none ) );
         (void)imu.set_option_port( boost::asio::serial_port_base::parity( 
@@ -39,8 +40,16 @@ int main( int argv , char** argc )
                 boost::asio::serial_port_base::stop_bits::one ) );
         (void)imu.set_option_port( 
                 boost::asio::serial_port_base::character_size( (unsigned char) 8 ) );
+        (void)imu.read_gyro_bias( &first , &second , &third );
+        std::cout   << "before value: " << first
+                    << "\n              " << second
+                    << "\n              " << third << '\n';
         (void)imu.capture_gyro_bias();
         (void)imu.set_idle();
+        (void)imu.read_gyro_bias( &first , &second , &third );
+        std::cout   << "after value : " << first
+                    << "\n              " << second
+                    << "\n              " << third << '\n';
         imu.close_port();
     }
     else
