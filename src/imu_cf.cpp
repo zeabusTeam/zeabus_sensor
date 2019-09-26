@@ -1,4 +1,4 @@
-// FILE			: imu_node.cpp
+// FILE			: imu_cf.cpp
 // AUTHOR		: K.Supasan
 // CREATE ON	: 2019, September 19 (UTC+0)
 // MAINTAINER	: K.Supasan
@@ -118,7 +118,7 @@ convert: // This you to loop convert data
                     goto convert;
                 case _imu_protocol::DATA::IMU_DATA_SET::CF_QUATERNION :
                     (void)zeabus_ros::convert::geometry_quaternion::bytes( start_point ,
-                            &message.angular_velocity ,
+                            &message.orientation ,
                             1 );
                     start_point += 18 ; // skip point self field descriptor byte <1 byte>
                                         // skip point self length data 3 float < 4*4 bytes>
