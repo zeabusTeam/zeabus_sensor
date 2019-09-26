@@ -3,6 +3,7 @@ project( zeabus_sensor )
 
 find_package( catkin REQUIRED COMPONENTS 
     roscpp 
+    zeabus_utility
 )
 
 find_package( zeabus_library REQUIRED )
@@ -18,6 +19,18 @@ include_directories(
 
 add_executable( capture_gyro_bias src/imu_capture_gyro_bias.cpp)
 target_link_libraries( capture_gyro_bias 
+    ${zeabus_library_LIBRARIES}
+    ${catkin_LIBRARIES}
+)
+
+add_executable( imu_cf src/imu_cf.cpp )
+target_link_libraries( imu_cf 
+    ${zeabus_library_LIBRARIES}
+    ${catkin_LIBRARIES}
+)
+
+add_executable( imu_ahrs src/imu_ahrs.cpp )
+target_link_libraries( imu_cf 
     ${zeabus_library_LIBRARIES}
     ${catkin_LIBRARIES}
 )
