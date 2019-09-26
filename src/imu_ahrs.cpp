@@ -27,6 +27,8 @@
 
 #include    <zeabus/sensor/imu/connector.hpp>
 
+#include    <zeabus/ros/convert/geometry_vector3.hpp>
+
 #include    <zeabus/sensor/imu/LORD_IMU_COMMUNICATION.hpp>
 
 
@@ -39,21 +41,27 @@ int main( int argv , char** argc )
 
     // Parameter of path of IMU device
     std::string device_path;
-    param_handle.param< std::string >( "device_path" ,
+    ph.param< std::string >( "device_path" ,
             device_path ,
             "/dev/microstrain/3dm_gx5_45_0000__6251.65903");
 
     // Parameter of frequency
-    std::string frequency;
-    param_handle.param< int >( "frequency" , frequency , 50 );
+    int frequency;
+    ph.param< int >( "frequency" , frequency , 50 );
 
     // Parameter of topic output
     std::string topic_output;
-    param_handle.param< std::string >( "topic_output" ,
+    ph.param< std::string >( "topic_output" ,
             topic_output ,
             "sensor/imu" );
 
     zeabus::sensor::imu::Connector imu( device_path );
+
+    ros::Rate loop_rate( frequency );
+    std::vector< unsigned char >::iterator start_point;
+    std::vector< unsigned char >::iterator last_point;
+    zeabus_utility::Ahrs message;
+    ros::Publisher imu_publisher = nh.advertise< zeabus_utility::Ahrs >( topic_output , 1 );
 
     if( ! imu.open_port() )
     {
@@ -84,11 +92,6 @@ int main( int argv , char** argc )
     if( ! imu.enable_imu_data_stream() ) goto exit_main;
     if( ! imu.resume() ) goto exit_main;
 
-    ros::Rate loop_rate( frequency );
-    std::vector< unsigned char >::iterator start_point;
-    std::vector< unsigned char >::iterator last_point;
-    zeabus_utility::Ahrs message;
-    ros::Publisher imu_publisher = nh.advertise< sensor_msgs::Imu >( topic_output , 1 );
     while( ros::ok() )
     {
         if( imu.read_stream( &start_point , &last_point ) )
@@ -130,7 +133,7 @@ convert: // This you to loop convert data
             }
             else
             {
-                message.header.stamp = ros:;Time::now();
+                message.header.stamp = ros::Time::now();
                 imu_publisher.publish( message );
             }
 
