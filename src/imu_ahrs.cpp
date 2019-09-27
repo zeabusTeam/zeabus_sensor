@@ -21,9 +21,9 @@
 
 #include    <sensor_msgs/Imu.h>
 
-#include    <zeabus_utility/Ahrs.h>
-
 #include    <zeabus/ros/node.hpp>
+
+#include    <zeabus_utility/Ahrs.h>
 
 #include    <zeabus/sensor/imu/connector.hpp>
 

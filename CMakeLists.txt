@@ -29,8 +29,8 @@ target_link_libraries( imu_cf
     ${catkin_LIBRARIES}
 )
 
-#add_executable( imu_ahrs src/imu_ahrs.cpp )
-#target_link_libraries( imu_cf 
-#    ${zeabus_library_LIBRARIES}
-#    ${catkin_LIBRARIES}
-#)
+add_executable( imu_ahrs src/imu_ahrs.cpp )
+target_link_libraries( imu_ahrs
+    ${zeabus_library_LIBRARIES}
+    ${catkin_LIBRARIES}
+)
