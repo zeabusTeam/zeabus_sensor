@@ -82,7 +82,7 @@ int main( int argv , char** argc )
                 boost::asio::serial_port_base::stop_bits::one ) );
         (void)imu.set_option_port( 
                 boost::asio::serial_port_base::character_size( (unsigned char) 8 ) );
-        imu.set_imu_rate( frequency );
+        imu.set_imu_rate( 500 / frequency );
     }
 
     // Part of command connect to IMU
