@@ -39,7 +39,7 @@ int main( int argv , char** argc )
 
     ros::NodeHandle ph("~"); // param node handle
     ros::NodeHandle nh(""); // general node handle
-
+    node.spin();
     // Parameter of path of IMU device
     std::string device_path;
     ph.param< std::string >( "device_path" ,

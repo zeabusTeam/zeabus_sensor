@@ -4,12 +4,14 @@
 // MAINTAINER	: K.Supasan
 
 // MACRO DETAIL
+//  _RAW_DATA_  :   use this macro if you want to see raw data
 
 // README
 
 // REFERENCE
 
 // MACRO SET
+//#define _RAW_DATA_ // (NO AVAILABLE NOW)
 
 // MACRO CONDITION
 
@@ -38,7 +40,7 @@ int main( int argv , char** argc )
 
     ros::NodeHandle ph("~"); // param node handle
     ros::NodeHandle nh(""); // general node handle
-
+    node.spin();
     // Parameter of path of IMU device
     std::string device_path;
     ph.param< std::string >( "device_path" ,
@@ -98,6 +100,9 @@ int main( int argv , char** argc )
         {
 
 convert: // This you to loop convert data
+#ifdef _RAW_DATA_
+            imu.reader.print_data_hex( "RAW message from IMU : " );
+#endif // _RAW_DATA_
             if( start_point < last_point )
             {
                 switch( *start_point )
@@ -151,4 +156,6 @@ exit_main:
         imu.close_port();
     }
     node.join();
+
+    return 0;
 }
