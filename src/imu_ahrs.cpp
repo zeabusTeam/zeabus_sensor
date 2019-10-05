@@ -15,6 +15,8 @@
 
 // MACRO CONDITION
 
+#include    <thread>
+
 #include    <vector>
 
 #include    <iostream>
@@ -26,6 +28,8 @@
 #include    <zeabus/ros/node.hpp>
 
 #include    <zeabus_utility/Ahrs.h>
+
+#include    <zeabus/math/ahrs/madgwick.hpp>
 
 #include    <zeabus/sensor/imu/connector.hpp>
 
@@ -57,13 +61,30 @@ int main( int argv , char** argc )
             topic_output ,
             "sensor/imu" );
 
+    std::string topic_data;
+    ph.param< std::string >( "topic_data" ,
+            topic_data,
+            "sensor/ahrs");
+    
+    // I assign how to calculate is solution because it mean algorithm to use for calculate
+    zeabus::math::ahrs::Madgwick solution( 1 , 0 , 0 , 0 , 0.1f );
+
     zeabus::sensor::imu::Connector imu( device_path );
 
     ros::Rate loop_rate( frequency );
     std::vector< unsigned char >::iterator start_point;
     std::vector< unsigned char >::iterator last_point;
     zeabus_utility::Ahrs message;
-    ros::Publisher imu_publisher = nh.advertise< zeabus_utility::Ahrs >( topic_output , 1 );
+    sensor_msgs::Imu result; // we will export result to fusion node
+    ros::Publisher imu_ahrs = nh.advertise< zeabus_utility::Ahrs >( topic_data , 1 );
+    ros::Publisher imu_data = nh.advertise< sensor_msgs::Imu >( topic_output , 1 );
+
+    solution.regis_data( &result.orientation.w , 
+            &result.orientation.x , 
+            &result.orientation.y , 
+            &result.orientation.z );
+
+    result.header.stamp = ros::Time::now();
 
     if( ! imu.open_port() )
     {
@@ -139,7 +160,22 @@ convert: // This you to loop convert data
             else
             {
                 message.header.stamp = ros::Time::now();
-                imu_publisher.publish( message );
+                imu_ahrs.publish( message );
+                solution.update( message.angular_velocity.x , 
+                        message.angular_velocity.y ,
+                        message.angular_velocity.z , 
+                        message.linear_acceleration.x ,
+                        message.linear_acceleration.y , 
+                        message.linear_acceleration.z ,
+                        message.magnetic_field.x , 
+                        message.magnetic_field.y ,
+                        message.magnetic_field.z , 
+                        ( message.header.stamp - result.header.stamp ).toSec() );
+                solution.get_value();
+                result.header = message.header;
+                result.angular_velocity = message.angular_velocity;
+                result.linear_acceleration = message.linear_acceleration;
+                imu_data.publish( result );
             }
 
         } // read stream finish
