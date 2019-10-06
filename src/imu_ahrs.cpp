@@ -67,7 +67,7 @@ int main( int argv , char** argc )
             "sensor/ahrs");
     
     // I assign how to calculate is solution because it mean algorithm to use for calculate
-    zeabus::math::ahrs::Madgwick solution( 1 , 0 , 0 , 0 , 0.1f );
+    zeabus::math::ahrs::Madgwick solution( 1 , 0 , 0 , 0 , frequency , 0.01f);
 
     zeabus::sensor::imu::Connector imu( device_path );
 
@@ -169,8 +169,7 @@ convert: // This you to loop convert data
                         message.linear_acceleration.z ,
                         message.magnetic_field.x , 
                         message.magnetic_field.y ,
-                        message.magnetic_field.z , 
-                        ( message.header.stamp - result.header.stamp ).toSec() );
+                        message.magnetic_field.z ); 
                 solution.get_value();
                 result.header = message.header;
                 result.angular_velocity = message.angular_velocity;
