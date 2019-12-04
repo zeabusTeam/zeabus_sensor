@@ -26,7 +26,7 @@
 int main( int argv , char** argc )
 {
 
-    zeabus_ros::Node node( argv , argc , "localize" );
+    zeabus_ros::Node node( argv , argc , "sensor_pressure" );
 
     ros::NodeHandle ph("~");
     ros::NodeHandle nh("");
@@ -60,7 +60,7 @@ int main( int argv , char** argc )
         if( client_pressure.call( service_pressure ) )
         {
             message_output.header = service_pressure.response.header;
-            message_output.data = service_pressure.response.depth;
+            message_output.data = -1.0 * service_pressure.response.depth;
             publisher_pressure.publish( message_output );
         }
         else
