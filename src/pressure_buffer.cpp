@@ -23,6 +23,8 @@
 
 #include    <zeabus_utility/HeaderFloat64.h>
 
+#include    <zeabus/filter/outliner.hpp>
+
 #include    <zeabus/ros/node.hpp>
 
 int main( int argv , char** argc )
@@ -51,6 +53,9 @@ int main( int argv , char** argc )
             topic_output,
             "sensor/pressure");
 
+    zeabus::filter::Outliner< double , 7 > filter_pressure( 0 );
+    filter_pressure.set_cut_size( 2 );
+
     ros::ServiceClient client_pressure = nh.serviceClient< zeabus_utility::ServiceDepth >( 
             topic_service );
     zeabus_utility::ServiceDepth service_pressure;
@@ -65,26 +70,58 @@ int main( int argv , char** argc )
     
     ros::Rate rate( frequency );
 
+fill_data: // This will fill data to full array of filter
+    while( ros::ok() )
+    {
+        rate.sleep();
+        if( client_pressure.call( service_pressure ) )
+        {
+            if( message_output.header.stamp != service_pressure.response.header.stamp )
+            {
+                // publish original data for collect data
+                message_original.header = service_pressure.response.header;
+                message_original.data = -1.0 * service_pressure.response.depth ;
+                publisher_original.publish( message_original );
+                filter_pressure.push_data( message_original.data );
+            } // condition defferent time stamp
+            else
+            {
+                ROS_INFO( "Failure get same data of pressure sensor" );
+            } // condition same time stamp
+        } // condition success call service
+        else
+        {
+            ROS_ERROR( "Failure client to call topic for pressure sensor data");
+        } // condition failure call service
+    } // loop while of fill data
+
 active_main:
     while( ros::ok() )
     {
         rate.sleep();
         if( client_pressure.call( service_pressure ) )
         {
-            message_output.header = service_pressure.response.header;
-            if( service_pressure.response.depth > 0 && service_pressure.response.depth < 3 )
-                message_output.data = -1.0 * service_pressure.response.depth ;
-            publisher_pressure.publish( message_output );
-
-            message_original.header = service_pressure.response.header;
-            message_original.data = -1.0 * service_pressure.response.depth ;
-            publisher_original.publish( message_original );
-        }
+            if( message_output.header.stamp != service_pressure.response.header.stamp )
+            {
+                // publish original data for collect data
+                message_original.header = service_pressure.response.header;
+                message_original.data = -1.0 * service_pressure.response.depth ;
+                publisher_original.publish( message_original );
+                filter_pressure.push_data( message_original.data );
+                // publish output data for collect data
+                message_output.header = service_pressure.response.header;
+                message_output.data = filter_pressure.get_result();
+                publisher_pressure.publish( message_output );
+            } // condition defferent time stamp
+            else
+            {
+                ROS_INFO( "Failure get same data of pressure sensor" );
+            } // condition same time stamp
+        } // condition success call service
         else
         {
             ROS_ERROR( "Failure client to call topic for pressure sensor data");
-        }
-        
-    }
+        } // condition failure call service
+    } // loop while of active main
 
 }
