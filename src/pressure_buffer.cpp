@@ -36,7 +36,7 @@ int main( int argv , char** argc )
     ros::NodeHandle nh("");
 
     int frequency;
-    ph.param< int >( "frequency" , frequency , 30 );
+    ph.param< int >( "frequency" , frequency , 50 );
 
     std::string topic_service;
     ph.param< std::string >( "topic_input" ,
@@ -53,7 +53,7 @@ int main( int argv , char** argc )
             topic_output,
             "sensor/pressure");
 
-    zeabus::filter::Outliner< double , 7 > filter_pressure( 0 );
+    zeabus::filter::Outliner< double , 11 > filter_pressure( 0 );
     filter_pressure.set_cut_size( 2 );
 
     ros::ServiceClient client_pressure = nh.serviceClient< zeabus_utility::ServiceDepth >( 
@@ -71,7 +71,7 @@ int main( int argv , char** argc )
     ros::Rate rate( frequency );
 
 fill_data: // This will fill data to full array of filter
-    while( ros::ok() )
+    for( unsigned int count = 0 ; count < 7 && ros::ok() ; )
     {
         rate.sleep();
         if( client_pressure.call( service_pressure ) )
@@ -83,6 +83,7 @@ fill_data: // This will fill data to full array of filter
                 message_original.data = -1.0 * service_pressure.response.depth ;
                 publisher_original.publish( message_original );
                 filter_pressure.push_data( message_original.data );
+                count++;
             } // condition defferent time stamp
             else
             {
@@ -110,7 +111,8 @@ active_main:
                 filter_pressure.push_data( message_original.data );
                 // publish output data for collect data
                 message_output.header = service_pressure.response.header;
-                message_output.data = filter_pressure.get_result();
+//                message_output.data = filter_pressure.get_result();
+                message_output.data = filter_pressure.get_median();
                 publisher_pressure.publish( message_output );
             } // condition defferent time stamp
             else
