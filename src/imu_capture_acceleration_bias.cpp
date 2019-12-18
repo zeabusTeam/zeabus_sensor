@@ -14,6 +14,8 @@
 
 // MACRO CONDITION
 
+#include    <cmath>
+
 #include    <vector>
 
 #include    <iostream>
@@ -43,7 +45,20 @@ int main( int argv , char** argc )
     ros::NodeHandle nh(""); // general node handle
 
     const static double unit_acceleration_imu = 9.80665;
-    const static double gravity_acceleration = 9.6431658; 
+
+// part variable for capture acceleration bias
+    int target_size;
+    ph.param< int >( "collect_size" , target_size , 100 );
+
+    int count = 0;
+    double acceleration_x[ target_size ];
+    double acceleration_y[ target_size ];
+    double acceleration_z[ target_size ];
+    double percent_data = 0;
+    int step_alert;
+    ph.param< int >( "step_alert" , step_alert , 10 );
+    int should_alert = step_alert;
+// end part
 
     node.spin();
     // Parameter of path of IMU device
@@ -99,11 +114,11 @@ int main( int argv , char** argc )
     if( ! imu.enable_imu_data_stream() ) goto exit_main;
     if( ! imu.resume() ) goto exit_main;
 
-    while( ros::ok() )
+    std::cout   << "Collecting data 0%\n";
+    while( ros::ok() && count < target_size )
     {
         if( imu.read_stream( &start_point , &last_point ) )
         {
-
 convert: // This you to loop convert data
             if( start_point < last_point )
             {
@@ -142,6 +157,16 @@ convert: // This you to loop convert data
             {
                 message.header.stamp = ros::Time::now();
                 imu_publisher.publish( message );
+                acceleration_x[count] = message.linear_acceleration.x;
+                acceleration_y[count] = message.linear_acceleration.y;
+                acceleration_z[count] = message.linear_acceleration.z;
+                count++;
+                percent_data = 1.0 * count / target_size * 100;
+                if( percent_data > should_alert )
+                {
+                    std::cout   << "Collecting data " << percent_data << "%\n";
+                    should_alert += step_alert;
+                }
             }
 
         } // read stream finish
@@ -158,4 +183,18 @@ exit_main:
         imu.close_port();
     }
     node.join();
+    if( count == target_size )
+    {
+        std::cout   << "Finish collecting data and processing\n";
+        double answer = 0;
+        double temp = 0;
+        for( unsigned int run = 0 ; run < target_size ; run++ , temp = 0 )
+        {
+            temp += std::pow( acceleration_x[ run ]*unit_acceleration_imu , 2 );
+            temp += std::pow( acceleration_y[ run ]*unit_acceleration_imu , 2 );
+            temp += std::pow( acceleration_z[ run ]*unit_acceleration_imu , 2 );
+            answer += std::sqrt( temp );
+        }
+        std::cout   << "Bias acceleration is " << answer / target_size << "\n";
+    }
 }

@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+
+<launch>
+
+    <node pkg="zeabus_sensor" type="capture_acceleration" name="imu" output="screen">
+        <param name="device_path" value="/dev/microstrain/3dm_gx5_45_0000__6236.40569"/>
+        <param name="frequency" value="50"/>
+        <param name="topic_output" value="/sensor/imu"/>
+        <param name="collect_size" value="200"/>
+        <param name="step_alert" value="5"/>
+    </node>
+
+</launch>

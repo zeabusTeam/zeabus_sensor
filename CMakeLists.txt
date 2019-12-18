@@ -23,6 +23,12 @@ target_link_libraries( capture_gyro_bias
     ${catkin_LIBRARIES}
 )
 
+add_executable( capture_acceleration src/imu_capture_acceleration_bias.cpp)
+target_link_libraries( capture_acceleration 
+    ${zeabus_library_LIBRARIES}
+    ${catkin_LIBRARIES}
+)
+
 add_executable( imu_cf src/imu_cf.cpp )
 target_link_libraries( imu_cf 
     ${zeabus_library_LIBRARIES}
