@@ -119,7 +119,7 @@ active_main:
                 // publish output data for collect data
                 message_output.header = service_pressure.response.header;
 //                message_output.data = filter_pressure.get_result();
-                message_output.data = filter_pressure.get_median();
+                message_output.data = filter_pressure.median();
                 publisher_pressure.publish( message_output );
             } // condition defferent time stamp
             else

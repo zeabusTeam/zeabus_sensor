@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+
+<launch>
+
+    <node pkg="zeabus_sensor" type="imu_cf" name="imu" output="screen">
+        <param name="device_path" value="/dev/microstrain/3dm_gx5_45_0000__6236.40569"/>
+        <param name="frequency" value="50"/>
+        <param name="topic_output" value="/sensor/imu"/>
+    </node>
+
+</launch>
