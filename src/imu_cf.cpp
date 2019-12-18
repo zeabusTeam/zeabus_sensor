@@ -44,7 +44,8 @@ int main( int argv , char** argc )
     std::string device_path;
     ph.param< std::string >( "device_path" ,
             device_path ,
-            "/dev/microstrain/3dm_gx5_45_0000__6251.65903");
+            "/dev/microstrain/3dm_gx5_45_0000__6251.65901");
+//            "/dev/microstrain/3dm_gx5_45_0000__6236.40569");
 
     // Parameter of frequency
     int frequency;
