@@ -11,6 +11,8 @@
 //  ref01 : https://en.cppreference.com/w/cpp/language/goto
 
 // MACRO SET
+#define COLLECT_RAW_DATA
+//#define PRINT_GRAVITY_BIAS
 
 // MACRO CONDITION
 
@@ -42,8 +44,12 @@ int main( int argv , char** argc )
     ros::NodeHandle ph("~"); // param node handle
     ros::NodeHandle nh(""); // general node handle
 
+    // Path to reduce bias of acceleration
     const static double unit_acceleration_imu = 9.80665;
-    const static double gravity_acceleration = 9.6431658; 
+    const static double gravity_acceleration = 9.71945; 
+    const static tf::Quaternion quaternion_gravity( 0 , 0 , gravity_acceleration , 0 );
+    tf::Quaternion quaternion_orientation( 0 , 0 , 0 , 1 );
+    tf::Quaternion quaternion_gravity_bias( 0 , 0 , gravity_acceleration , 0 );
 
     node.spin();
     // Parameter of path of IMU device
@@ -69,6 +75,11 @@ int main( int argv , char** argc )
     std::vector< unsigned char >::iterator last_point;
     sensor_msgs::Imu message;
     ros::Publisher imu_publisher = nh.advertise< sensor_msgs::Imu >( topic_output , 1 );
+#ifdef COLLECT_RAW_DATA
+    sensor_msgs::Imu message_original;
+    ros::Publisher imu_original_publisher = nh.advertise< sensor_msgs::Imu >( 
+            topic_output + "_original" , 1 );
+#endif // COLLECT_RAW_DATA
 
     if( ! imu.open_port() )
     {
@@ -141,6 +152,27 @@ convert: // This you to loop convert data
             else
             {
                 message.header.stamp = ros::Time::now();
+#ifdef COLLECT_RAW_DATA
+                message_original = message;
+                imu_original_publisher.publish( message_original );
+#endif // COLLECT_RAW_DATA
+                zeabus_ros::convert::geometry_quaternion::tf( &message.orientation, 
+                        &quaternion_orientation );
+                // gravity is inertia frame and we will convert to imu frame
+                quaternion_gravity_bias = quaternion_orientation.inverse() *
+                        quaternion_gravity *
+                        quaternion_orientation;
+#ifdef PRINT_GRAVITY_BIAS
+                std::cout   << quaternion_gravity_bias.x() << " "
+                            << quaternion_gravity_bias.y() << " "
+                            << quaternion_gravity_bias.z() << "\n";
+#endif // PRINT_GRAVITY_BIAS
+                message.linear_acceleration.x *= unit_acceleration_imu * -1;
+                message.linear_acceleration.y *= unit_acceleration_imu * -1;
+                message.linear_acceleration.z *= unit_acceleration_imu * -1;
+                message.linear_acceleration.x -= quaternion_gravity_bias.x();
+                message.linear_acceleration.y -= quaternion_gravity_bias.y();
+                message.linear_acceleration.z -= quaternion_gravity_bias.z();
                 imu_publisher.publish( message );
             }
 
