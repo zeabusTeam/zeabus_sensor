@@ -12,6 +12,7 @@
 // MACRO SET
 #define SIZE_DATA 5
 #define LIMIT_VARIANCE 10.0
+//#define LOG_ORIGIN_PRESSURE 
 
 // MACRO CONDITION
 
@@ -64,9 +65,11 @@ int main( int argv , char** argc )
     ros::Publisher publisher_pressure = nh.advertise< zeabus_utility::HeaderFloat64 >( 
             topic_output , 1 );
 
+#ifdef LOG_ORIGIN_PRESSURE
     zeabus_utility::HeaderFloat64 message_original;
     ros::Publisher publisher_original = nh.advertise< zeabus_utility::HeaderFloat64 >( 
             topic_original , 1 );
+#endif // LOG_ORIGIN_PRESSURE
     
     ros::Rate rate( frequency );
 
@@ -79,10 +82,12 @@ fill_data: // This will fill data to full array of filter
             if( message_output.header.stamp != service_pressure.response.header.stamp )
             {
                 // publish original data for collect data
+#ifdef LOG_ORIGIN_PRESSURE
                 message_original.header = service_pressure.response.header;
-                message_original.data = -1.0 * service_pressure.response.depth ;
+                message_original.data = service_pressure.response.depth ;
                 publisher_original.publish( message_original );
-                filter_pressure.push_data( message_original.data );
+#endif // LOG_ORIGIN_PRESSURE
+                filter_pressure.push_data( service_pressure.response.depth );
                 count++;
             } // condition defferent time stamp
             else
@@ -105,10 +110,12 @@ active_main:
             if( message_output.header.stamp != service_pressure.response.header.stamp )
             {
                 // publish original data for collect data
+#ifdef LOG_ORIGIN_PRESSURE
                 message_original.header = service_pressure.response.header;
-                message_original.data = -1.0 * service_pressure.response.depth ;
+                message_original.data = service_pressure.response.depth ;
                 publisher_original.publish( message_original );
-                filter_pressure.push_data( message_original.data );
+#endif // LOG_ORIGIN_PRESSURE
+                filter_pressure.push_data( service_pressure.response.depth );
                 // publish output data for collect data
                 message_output.header = service_pressure.response.header;
 //                message_output.data = filter_pressure.get_result();

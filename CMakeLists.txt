@@ -40,3 +40,9 @@ target_link_libraries( pressure_buffer
     ${catkin_LIBRARIES}
     ${zeabus_library_LIBRARIES}
 )
+
+add_executable( pressure_origin src/pressure_generate.cpp )
+target_link_libraries( pressure_origin 
+    ${catkin_LIBRARIES}
+    ${zeabus_library_LIBRARIES}
+)
