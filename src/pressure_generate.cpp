@@ -54,6 +54,7 @@ class ServerDepth
         {
             this->ptr_lock->lock();
             response.header = this->ptr_data->header;
+            response.header.stamp = ros::Time::now();
             response.depth = this->ptr_data->data;
             this->ptr_lock->unlock();
             return true;
