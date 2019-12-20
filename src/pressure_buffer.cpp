@@ -12,7 +12,7 @@
 // MACRO SET
 #define SIZE_DATA 5
 #define LIMIT_VARIANCE 10.0
-//#define LOG_ORIGIN_PRESSURE 
+#define LOG_ORIGIN_PRESSURE 
 
 // MACRO CONDITION
 
@@ -47,14 +47,14 @@ int main( int argv , char** argc )
     std::string topic_original;
     ph.param< std::string >( "topic_original",
             topic_original,
-            "sensor/original_pressure" );
+            "sensor/pressure_original" );
 
     std::string topic_output;
     ph.param< std::string >( "topic_output",
             topic_output,
             "sensor/pressure");
 
-    zeabus::filter::Outliner< double , 11 > filter_pressure( 0 );
+    zeabus::filter::Outliner< double , 10 > filter_pressure( 0 );
     filter_pressure.set_cut_size( 2 );
 
     ros::ServiceClient client_pressure = nh.serviceClient< zeabus_utility::ServiceDepth >( 
@@ -112,14 +112,14 @@ active_main:
                 // publish original data for collect data
 #ifdef LOG_ORIGIN_PRESSURE
                 message_original.header = service_pressure.response.header;
-                message_original.data = service_pressure.response.depth ;
+                message_original.data = -1*service_pressure.response.depth ;
                 publisher_original.publish( message_original );
 #endif // LOG_ORIGIN_PRESSURE
                 filter_pressure.push_data( service_pressure.response.depth );
                 // publish output data for collect data
                 message_output.header = service_pressure.response.header;
 //                message_output.data = filter_pressure.get_result();
-                message_output.data = filter_pressure.median();
+                message_output.data = -1.0*filter_pressure.median( 2 );
                 publisher_pressure.publish( message_output );
             } // condition defferent time stamp
             else

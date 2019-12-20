@@ -48,7 +48,7 @@ int main( int argv , char** argc )
 
 // part variable for capture acceleration bias
     int target_size;
-    ph.param< int >( "collect_size" , target_size , 100 );
+    ph.param< int >( "collect_size" , target_size , 250 );
 
     int count = 0;
     double acceleration_x[ target_size ];
@@ -56,7 +56,7 @@ int main( int argv , char** argc )
     double acceleration_z[ target_size ];
     double percent_data = 0;
     int step_alert;
-    ph.param< int >( "step_alert" , step_alert , 10 );
+    ph.param< int >( "step_alert" , step_alert , 5 );
     int should_alert = step_alert;
 // end part
 
@@ -65,7 +65,7 @@ int main( int argv , char** argc )
     std::string device_path;
     ph.param< std::string >( "device_path" ,
             device_path ,
-            "/dev/microstrain/3dm_gx5_45_0000__6251.65901");
+            "/dev/microstrain/3dm_gx5_45_0000__6251.65903");
 
     // Parameter of frequency
     int frequency;

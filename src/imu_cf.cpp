@@ -12,7 +12,7 @@
 
 // MACRO SET
 #define COLLECT_RAW_DATA
-//#define PRINT_GRAVITY_BIAS
+#define PRINT_GRAVITY_BIAS
 
 // MACRO CONDITION
 
@@ -46,7 +46,7 @@ int main( int argv , char** argc )
 
     // Path to reduce bias of acceleration
     const static double unit_acceleration_imu = 9.80665;
-    const static double gravity_acceleration = 9.71945; 
+    const static double gravity_acceleration = 9.79043; 
     const static tf::Quaternion quaternion_gravity( 0 , 0 , gravity_acceleration , 0 );
     tf::Quaternion quaternion_orientation( 0 , 0 , 0 , 1 );
     tf::Quaternion quaternion_gravity_bias( 0 , 0 , gravity_acceleration , 0 );
@@ -56,7 +56,7 @@ int main( int argv , char** argc )
     std::string device_path;
     ph.param< std::string >( "device_path" ,
             device_path ,
-            "/dev/microstrain/3dm_gx5_45_0000__6251.65901");
+            "/dev/microstrain/3dm_gx5_45_0000__6251.65903");
 
     // Parameter of frequency
     int frequency;
